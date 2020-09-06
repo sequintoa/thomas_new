@@ -3,6 +3,7 @@ import subprocess
 import signal
 import multiprocessing.pool
 
+# Add support for Python 3
 
 class PoolWrapper(object):
     """
