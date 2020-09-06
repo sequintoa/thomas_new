@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 """
 Create multi-atlas from nuclei and evaluate overlap against original truth labels.
 """
@@ -25,7 +26,7 @@ def dice_c3d(im1, im2, label=1):
     try:
         return float(x.split(', ')[-2])
     except ValueError:
-        print x
+        print(x)
         raise
 
 
@@ -47,7 +48,7 @@ def split_multiatlas(atlas, output_prefix, pool=None):
             try:
                 output = output_prefix[idx]
             except (IndexError, KeyError):
-                print 'Skipping %d' % idx
+                print("Skipping %d" % idx)
                 continue
         cmds.append('ThresholdImage 3 %s %s %d %d' % (atlas, output, idx, idx))
     pool.map(command, cmds)
@@ -90,7 +91,7 @@ find_num = re.compile('[0-9]+')
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print '%s <method: Numerical, Metric> <output_atlas> labels ...' % sys.argv[0]
+        print("%s <method: Numerical, Metric> <output_atlas> labels ..." % sys.argv[0])
         sys.exit(0)
 
     pool = BetterPool()
@@ -98,11 +99,11 @@ if __name__ == '__main__':
     out = sys.argv[2]
     labels = sys.argv[3:]
     if method == 'Numerical':
-        print 'Using the input order'
+        print('Using the input order')
         method_labels = labels
     elif method == 'Metric':
         # Use overlap metric based comparison
-        print 'Calculating overlap metric weighted by volume'
+        print('Calculating overlap metric weighted by volume')
         compare = CompareOverlap(labels, pool)
         method_labels = sorted(labels, cmp=compare)
     label_numbers = dict()
@@ -116,11 +117,11 @@ if __name__ == '__main__':
     try:
         assert len(set(label_numbers.values())) == len(label_numbers.values())
     except AssertionError:
-        print 'Make sure the ID number is at the beginning of the filename.'
+        print('Make sure the ID number is at the beginning of the filename.')
         print label_numbers
         raise
 
-    print 'Creating atlas'
+    print('Creating atlas')
     try:
         temp_file = tempfile.NamedTemporaryFile(suffix='.nii.gz', delete=True)
         # CreateImage imageDimension referenceImage outputImage constant [random?]
@@ -128,8 +129,8 @@ if __name__ == '__main__':
         # overadd gives priority to labels later in list, addtozero gives priority to first or reversed(labels)
         # TODO parallelize over fslmaths
         for label in method_labels:
-            print label
-            # print label
+            print(label)
+            # print(label)
             # Remake ROI with the correct integer label
             os.system('fslmaths %s -bin -mul %s %s' % (label, label_numbers[label], temp_file.name))
             # ImageMath ImageDimension <OutputImage.ext> [operations and inputs] <Image1.ext> <Image2.ext>
@@ -140,7 +141,7 @@ if __name__ == '__main__':
         temp_file.close()
 
     # Evaluate dice of combined atlas vs original independent ROIs
-    print 'Evaluating atlas'
+    print('Evaluating atlas')
     temp_files = []
     cmds = []
     dice_params = []
@@ -161,9 +162,9 @@ if __name__ == '__main__':
 
     # Output to screen
     scores = OrderedDict(zip(labels, dices))
-    print 'Label\tDice'
+    print("Label\tDice")
     for label, score in scores.iteritems():
-        print '%s\t%.6g' % (label, score)
+        print("%s\t%.6g" % (label, score))
     db = shelve.open(out+'.shelve')
     db.update(scores)
     db.close()

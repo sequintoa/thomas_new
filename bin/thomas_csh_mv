@@ -1,0 +1,57 @@
+#!/bin/tcsh
+
+if ( $#argv >= 1 && $#argv <= 2 ) then
+    set x = $1
+    set y = $1:t
+    if ( $x == $y) then
+        echo "File name OK"
+        set fileok = 1
+    else
+        set fileok = 0
+        echo "First argument has to be just the WMn MPRAGE file name without the full path"
+        echo "Please call thomas_csh in the directory containing the WMn file"
+    endif
+else
+     echo "Usage: thomas <wmnfile> or thomas <wmnfile> r"
+endif
+
+if ( $fileok == 1 ) then
+if ( $#argv == 1 ) then
+  echo "Running left thalamus"
+  $THOMASDIR/THOMAS.py -a v2 -p 20 -v -M --tempdir temp $1 ALL
+  mkdir left
+  mv *.nii.gz left
+  mv temp/*Warp* temp/*Aff* left
+  mv temp/registered.nii.gz left
+  mv left/$1 .
+  echo "Done; segmentation results in directory left"
+
+else
+  if ( $#argv == 2) then
+    if ($2 == r) then
+      echo "Running left and right thalamus"
+      echo "Running left thalamus"
+      $THOMASDIR/THOMAS.py -a v2 -p 20 -v -M --tempdir temp $1 ALL
+      mkdir left
+      mv *.nii.gz left
+      mv temp/*Warp* temp/*Aff* left
+      mv temp/registered.nii.gz left
+      mv left/$1 .
+      echo "Running right thalamus"
+      $THOMASDIR/THOMAS.py -a v2 -p 20 -v -R -M --tempdir tempr $1 ALL
+      mkdir right
+      mv *.nii.gz right
+      mv tempr/*Warp* tempr/*Aff* right
+      mv tempr/registered.nii.gz right
+      mv right/$1 .
+      echo "Done; segmentation results in directories left and right"
+
+else
+      echo "Usage: thomas <wmnfile> or thomas <wmnfile> r"
+    endif
+  else
+      echo "Usage: thomas <wmnfile> or thomas <wmnfile> r"
+  endif
+endif
+
+endif

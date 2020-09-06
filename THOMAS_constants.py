@@ -1,9 +1,17 @@
+from __future__ import print_function
 """
 Paths, names, optimized hyper-parameters, and other constants for THOMAS.
 """
 import os
 import shelve
-
+import sys
+# Note: Python3 Use shelve with dumbdbm to open database file for PICSL
+# For Python2, shelve module will suffice 
+if sys.version_info[0] > 2:
+    import dbm.dumb
+    import dbm
+else:
+    import dumbdbm
 
 image_name = 'WMnMPRAGE_bias_corr.nii.gz'
 # Find path for priors
@@ -32,11 +40,22 @@ roi = {
 roi_choices = (roi['param_all'],)+roi['param_names']
 
 # Optimized hyper-parameters for PICSL
-db = shelve.open(os.path.join(this_path, 'cv_optimal_picsl_parameters.shelve'), 'r')
-optimal = dict(db)
-db.close()
+if sys.version_info[0] < 3:
+#    db = shelve.open(os.path.join(this_path, 'cv_optimal_picsl_parameters.shelve'), 'r')
+    db = shelve.Shelf(dumbdbm.open(os.path.join(this_path, 'cv_optimal_picsl_parameters.dumbdbm.shelve'), 'r'))
+    db.close()
+else:
+    #db = shelve.open(os.path.join(this_path, 'cv_optimal_picsl_parameters.shelve'))
+#    db = shelve.Shelf(dbm.dumb.open(os.path.join(this_path, 'cv_optimal_picsl_parameters.dumbdbm.shelve'), 'r'))
+
+#    db = shelve.Shelf(dbm.dumb.open(os.path.join(this_path, 'cv_optimal_picsl_parameters.dbm.shelve.db'), 'r'))
+#optimal = dict(db)
+
+    optimal = {'PICSL': {'5-VLa': {'beta': 0.5, 'score': 0.61647925000000003, 'rp': [2.0, 2.0, 2.0], 'rs': [3.0, 3.0, 3.0]}, '2-AV': {'beta': 1.0, 'score': 0.75553215624999992, 'rp': [2.0, 2.0, 2.0], 'rs': [4.0, 4.0, 4.0]}, '14-MTT': {'beta': 1.0, 'score': 0.64393765624999999, 'rp': [2.0, 2.0, 2.0], 'rs': [1.0, 1.0, 1.0]}, '10-MGN': {'beta': 5.0, 'score': 0.63739243749999996, 'rp': [3.0, 3.0, 3.0], 'rs': [2.0, 2.0, 2.0]}, '7-VPL': {'beta': 0.5, 'score': 0.61675868749999996, 'rp': [5.0, 5.0, 5.0], 'rs': [2.0, 2.0, 2.0]}, '4567-VL': {'beta': 2.0, 'score': 0.80880984374999998, 'rp': [3.0, 3.0, 3.0], 'rs': [2.0, 2.0, 2.0]}, '4-VA': {'beta': 0.5, 'score': 0.64682046874999999, 'rp': [5.0, 5.0, 5.0], 'rs': [0.0, 0.0, 0.0]}, '13-Hb': {'beta': 0.5, 'score': 0.63729618750000006, 'rp': [1.0, 1.0, 1.0], 'rs': [5.0, 5.0, 5.0]}, '6-VLP': {'beta': 1.0, 'score': 0.69648359375000002, 'rp': [5.0, 5.0, 5.0], 'rs': [2.0, 2.0, 2.0]}, '11-CM': {'beta': 0.10000000000000001, 'score': 0.65230337500000002, 'rp': [2.0, 2.0, 2.0], 'rs': [1.0, 1.0, 1.0]}, '12-MD-Pf': {'beta': 2.0, 'score': 0.81991278125, 'rp': [2.0, 2.0, 2.0], 'rs': [2.0, 2.0, 2.0]}, '8-Pul': {'beta': 0.5, 'score': 0.83126987500000005, 'rp': [2.0, 2.0, 2.0], 'rs': [3.0, 3.0, 3.0]}, '9-LGN': {'beta': 0.5, 'score': 0.66429712500000004, 'rp': [2.0, 2.0, 2.0], 'rs': [3.0, 3.0, 3.0]}, '1-THALAMUS': {'beta': 1.0, 'score': 0.90461968749999999, 'rp': [2.0, 2.0, 2.0], 'rs': [4.0, 4.0, 4.0]}}}
+
+
 
 
 if __name__ == '__main__':
-    print subjects
-    print optimal
+    print(subjects)
+    print(optimal)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 """
 Uncrop an image. Undoes ExtractRegionFromImageByMask.
 """
@@ -35,7 +36,7 @@ def uncrop_by_mask(input_image, output_image, full_mask, padding=0, canvas=None,
 
 if __name__ == '__main__':
     if len(sys.argv[1:]) < 3:
-        print '%s input_image output_image full_mask <padding> <canvas_image>' % sys.argv[0]
+        print("%s input_image output_image full_mask <padding> <canvas_image>" % sys.argv[0])
         sys.exit(0)
     input_image = sys.argv[1]
     output_image = sys.argv[2]

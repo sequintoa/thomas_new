@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 """
 Swaps dimension ordering (reslices) of input image to match another.match
 """
@@ -17,8 +18,8 @@ def read_ordering(f):
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        print '%s input_nii like_nii output_nii' % sys.argv[0]
-        print ' Reorders input_nii to match that of like_nii.'
+        print("%s input_nii like_nii output_nii" % sys.argv[0])
+        print(" Reorders input_nii to match that of like_nii.")
         sys.exit(0)
     input_file = sys.argv[1]
     like_file = sys.argv[2]
@@ -26,7 +27,7 @@ if __name__ == '__main__':
 
     for el in [input_file, like_file]:
         if not os.path.exists(el):
-            print '%s does not exist.' % el
+            print("%s does not exist." % el)
             sys.exit(1)
     order = read_ordering(like_file)
     os.system('fslswapdim %s %s %s' % (input_file, ' '.join(order), output_file))

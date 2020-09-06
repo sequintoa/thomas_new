@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 """
 Wrapper for antsApplyTransforms to make it more like the old WarpImageMultiTransform
 COMMAND:
@@ -101,7 +102,7 @@ parser.add_argument('--use-ML', default=None, help='<sigma=imageSpacing>,<alpha=
 if __name__ == '__main__':
     args = parser.parse_args()
     if not args.transforms:
-        print 'Must provide transforms'
+        print('Must provide transforms')
         sys.exit(1)
     transforms = ' '.join(parse_transforms(args.transforms))
     if args.use_NN:
@@ -115,7 +116,7 @@ if __name__ == '__main__':
     switches = []
     switches.append('d %s' if args.n_dim else '')
     switches.append('-n %s' % interp if interp else '')
-    # print args, switches
+    # print(args, switches)
     cmd = 'antsApplyTransforms -i %s -o %s -r %s %s -t %s --float 1' % (args.moving_image, args.output_image, args.reference_image, ' '.join(switches), transforms)
-    print cmd
+    print(cmd)
     os.system(cmd)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import subprocess
 import signal
 import multiprocessing.pool
@@ -66,24 +67,24 @@ class BetterPool(multiprocessing.pool.Pool):
 def command(cmd, echo=False, verbose=False, debug=False, suppress=False, env=None):
     # sp_cmd = cmd.split(' ')
     if echo:
-        print cmd
+        print(cmd)
         return
     if verbose:
-        print 'Executing: %s' % cmd
+        print("Executing: %s" % cmd)
     if debug:
         # Workaround for Python 2/3
         try:
             input = raw_input
         except NameError:
             pass
-        print 'About to run: %s' % cmd
+        print("About to run: %s" % cmd)
         if input('  Type n to skip') == 'n':
             return
     if suppress:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, env=env)
         stdout, stderr = p.communicate()
         if stderr:
-            print stderr
+            print(stderr)
         return p.returncode
     # return subprocess.call(sp_cmd)
     return subprocess.call(cmd, shell=True, env=env)
@@ -93,9 +94,9 @@ if __name__ == "__main__":
     def sleep(time, num):
         command('sleep %s' % time)
         #time.sleep(seconds)
-        print 'sleep %s' % num
+        print("sleep %s" % num)
         return 'Finished %s' % num
 
     pool = BetterPool(3)
     p = pool.map(sleep, [(10+i, i) for i in range(3)])
-    # print p.get(0xFFFF)
+    # print(p.get(0xFFFF))

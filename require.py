@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 """
 Check required dependencies
 """
@@ -44,14 +46,22 @@ executables = {
 }
 
 flag = False
-for toolkit, exe in executables.iteritems():
-    for x in filter(lambda el: not is_tool(el), exe):
-        print '%s is missing from %s' % (x, toolkit)
-        flag = True
+
+if sys.version_info[0] < 3: 
+    for toolkit, exe in executables.iteritems():
+        for x in filter(lambda el: not is_tool(el), exe):
+            print("%s is missing from %s" % (x, toolkit))
+            flag = True
+else:
+     for toolkit, exe in executables.items():
+        for x in filter(lambda el: not is_tool(el), exe):
+            print("%s is missing from %s" % (x, toolkit))
+            flag = True
+            
 if flag:
     sys.exit(1)
 
 
 if __name__ == '__main__':
     if not flag:
-        print 'All required dependencies for THOMAS were found.'
+        print('All required dependencies for THOMAS were found.')

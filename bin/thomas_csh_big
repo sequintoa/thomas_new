@@ -1,0 +1,149 @@
+#!/bin/tcsh
+set c = (1 2 4 5 6 7 8 9 10 11 12 13 14)
+
+if ( $#argv >= 1 && $#argv <= 2 ) then
+    set x = $1
+    set y = $1:t
+    if ( $x == $y) then
+        echo "File name OK"
+        set fileok = 1
+    else
+        set fileok = 0
+        echo "First argument has to be just the WMn MPRAGE file name without the full path"
+        echo "Please call thomas_csh in the directory containing the WMn file"
+    endif
+else
+     set fileok = 0
+     echo "Usage: thomas <wmnfile> or thomas <wmnfile> r or thomas <wmnfile> ro"
+endif
+
+if ( -d temp ) then
+  echo "There is a temp directory where $1 lives which indicates you have run THOMAS before"
+  echo "Please delete or rename temp and try again"
+  set tempon = 1
+else
+  set tempon = 0
+endif
+
+
+if ( -d tempr ) then
+  echo "There is a tempr directory where $1 lives which indicates you have run THOMAS before"
+  echo "Please delete or rename temp and try again"
+  set tempron = 1
+else
+  set tempron = 0
+endif
+
+
+if ( $fileok == 1 && $tempon == 0 && $tempron == 0) then
+if ( $#argv == 1 ) then
+  echo "Running left thalamus p15 template"
+  $THOMASDIR/THOMAS.py -a v2 -p 4 -v --jointfusion --tempdir temp --mask $THOMASDIR/atlas/mask_templ_93x187x68_p15.nii.gz --template $THOMASDIR/atlas/p15_templ_93x187x68.nii.gz $1 ALL
+  mkdir left
+  cp -rf temp/crop_* .
+  mv ?-*.nii.gz left
+  mv ??-*.nii.gz left
+  mv 4567* left
+  mv 6_* left
+  mv san* left
+  mv mask* left
+  mv crop_* left
+  mv rigid* left
+  mv temp/*Warp* temp/*Aff* left
+  mv temp/registered.nii.gz left
+  mv left/$1 .
+
+  cd left
+  $THOMASDIR/bin/fuselabels
+  set h = $1:t:r:r
+  antsApplyTransforms -d 3 -i $THOMASDIR/atlas/p15_templ_93x187x68.nii.gz -r crop_{$1} -o regn.nii.gz -t \[${h}0GenericAffine.mat, 1\] -t ${h}1InverseWarp.nii.gz
+  foreach z ($c)
+  foreach zz ($z-*.nii.gz)
+    echo $zz:r:r
+  end
+  set x = `fslstats $zz -V | awk '{print $2}'`
+  echo $zz:r:r $x >> nucleiVols.txt
+  end   
+  cd ..
+  echo "Done; segmentation results in directory left"
+
+else
+  if ( $#argv == 2) then
+    if ($2 == r) then
+      echo "Running left and right thalamus"
+      echo "Running left thalamus"
+      $THOMASDIR/THOMAS.py -a v2 -p 4 -v --jointfusion --tempdir temp --mask $THOMASDIR/atlas/mask_templ_93x187x68_p15.nii.gz --template $THOMASDIR/atlas/p15_templ_93x187x68.nii.gz $1 ALL
+      mkdir left
+      cp -rf temp/crop_* .
+      mv ?-*.nii.gz left
+      mv ??-*.nii.gz left
+      mv 4567* left
+      mv 6_* left
+      mv san* left
+      mv mask* left
+      mv crop_* left
+      mv rigid* left
+      mv temp/*Warp* temp/*Aff* left
+      mv temp/registered.nii.gz left
+      mv left/$1 .
+
+      cd left
+      $THOMASDIR/bin/fuselabels
+      set h = $1:t:r:r
+      antsApplyTransforms -d 3 -i $THOMASDIR/atlas/p15_templ_93x187x68.nii.gz -r crop_{$1} -o regn.nii.gz -t \[${h}0GenericAffine.mat, 1\] -t ${h}1InverseWarp.nii.gz
+      foreach z ($c)
+      foreach zz ($z-*.nii.gz)
+        echo $zz:r:r
+      end
+      set x = `fslstats $zz -V | awk '{print $2}'`
+      echo $zz:r:r $x >> nucleiVols.txt
+      end   
+      cd ..
+    endif
+
+    if ( ($2 == r) || ($2 == ro)) then
+      echo "Running right thalamus"
+      $THOMASDIR/THOMAS.py -a v2 -p 4 -v -R --jointfusion --tempdir tempr --mask $THOMASDIR/atlas/mask_templ_93x187x68_p15.nii.gz --template $THOMASDIR/atlas/p15_templ_93x187x68.nii.gz $1 ALL
+      mkdir right
+#     THOMAS flips so we want the original crop not the flipped
+#     cp -rf tempr/crop_* .
+      mv ?-*.nii.gz right
+      mv ??-*.nii.gz right
+      mv 4567* right
+      mv 6_* right
+      mv san* right
+      mv mask* right
+      mv crop_* right
+      mv rigid* right
+      mv tempr/*Warp* tempr/*Aff* right
+      mv tempr/registered.nii.gz right
+      mv right/$1 .
+
+      cd right
+      $THOMASDIR/bin/fuselabels
+      set h = $1:t:r:r
+      antsApplyTransforms -d 3 -i $THOMASDIR/atlas/p15_templ_93x187x68.nii.gz -r crop_{$1} -o regn.nii.gz -t \[${h}0GenericAffine.mat, 1\] -t ${h}1InverseWarp.nii.gz
+      foreach z ($c)
+      foreach zz ($z-*.nii.gz)
+        echo $zz:r:r
+      end
+      set x = `fslstats $zz -V | awk '{print $2}'`
+      echo $zz:r:r $x >> nucleiVols.txt
+      end   
+      cd ..
+
+      if ( $2 == r) then
+        echo "Done; segmentation results in directories left and right"
+      else
+        echo "Done; segmentation results in directory right"
+      endif
+    else
+      echo "Unrecognized second argument; usage: thomas <wmnfile> or thomas <wmnfile> r or ro"
+    endif
+
+  else
+      echo "Too many arguments; usage: thomas <wmnfile> or thomas <wmnfile> r or ro"
+  endif
+
+ endif
+endif

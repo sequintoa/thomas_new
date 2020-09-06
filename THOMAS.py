@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 """
 Segment subject for selected thalamic nuclei using whole-brain registration via a template and PICSL label fusion.
 """
@@ -16,6 +17,7 @@ from libraries.ants_nonlinear import ants_nonlinear_registration, ants_new_nonli
 from THOMAS_constants import image_name, orig_template, template_93, mask_93, this_path, prior_path, subjects, roi, roi_choices, optimal
 import nibabel
 import numpy as np
+
 
 def warp_atlas_subject(subject, path, labels, input_image, input_transform_prefix, output_path, exec_options={}):
     """
@@ -60,7 +62,7 @@ def warp_atlas_subject(subject, path, labels, input_image, input_transform_prefi
     # TODO merge this into previous for loop to be DRY?
     output_labels['WMnMPRAGE_bias_corr'] = output_image = os.path.join(output_path, image_name)
     if not os.path.exists(output_labels['WMnMPRAGE_bias_corr']):
-        print output_labels['WMnMPRAGE_bias_corr']
+        print(output_labels['WMnMPRAGE_bias_corr'])
         check_run(
             output_image,
             ants_apply_only_warp,
@@ -199,7 +201,7 @@ def main(args, temp_path, pool):
         if args.template is not None and args.mask is not None:
             template = args.template
             mask = args.mask
-            print "Custom template and mask"
+            print("Custom template and mask")
         elif args.template is not None and args.mask is None:
             sys.exit("!!!!!!! Both template and mask need to be specified simultaneously and they need to be of the same size !!!!!!!")
         elif args.template is None and args.mask is not None:
@@ -207,24 +209,24 @@ def main(args, temp_path, pool):
         else:
             template = template_93
             mask = mask_93
-            print "Algorithm is v2"
+            print("Algorithm is v2")
     elif args.algorithm == "v1":
         sys.exit("!!!!!!! v1 algorithm not yet implemented !!!!!!!")
     elif args.algorithm == "v0":
         template = orig_template
-        print "Template is origtemplate.nii.gz"
+        print("Template is origtemplate.nii.gz")
     else:
         sys.exit("!!!!!!! Algorithm incorrectly specified !!!!!!!")
 
-    # print 'Template being used is'
-    # print os.path.abspath(template)
+    # print("Template being used is")
+    # print(os.path.abspath(template))
 
 
     # TODO prevent both jointfusion and majority voting being set
 	# if args.jointfusion is None:
-		# print "args.jointfusion has been set (value is %s)" % args.jointfusion
+		# print("args.jointfusion has been set (value is %s)" % args.jointfusion)
 		# if args.majorityvoting is None:
-			# print "args.majorityvoting has been set (value is %s)" % args.majorityvoting
+			# print("args.majorityvoting has been set (value is %s)" % args.majorityvoting)
 			# sys.exit("!!!!!!! Only one label fusion can be selected at any time (default is antsJointFusion) !!!!!!!")
 	
     if args.warp:
@@ -241,45 +243,45 @@ def main(args, temp_path, pool):
         # Crop the input
         # Affine registering template to input
         ants_rigid_registration(orig_input_image, orig_template)
-        print "Completed a quick rigid registration of input and full template"
+        print("Completed a quick rigid registration of input and full template")
         mask_input = os.path.join(os.path.dirname(orig_input_image), 'mask_inp.nii.gz')
         # Transform mask from template space to input space
         ants_ApplyTransforms(mask, orig_input_image, mask_input)
         #ants_WarpImageMultiTransform(mask, mask_input, orig_input_image)
-        print "Completed transforming the mask from template space to input space"
+        print("Completed transforming the mask from template space to input space")
         file_name = os.path.basename(orig_input_image)
         index_of_dot = file_name.index('.')
         file_name_without_extension = file_name[:index_of_dot]
         input_image = os.path.join(os.path.dirname(orig_input_image), 'crop_'+file_name_without_extension+'.nii.gz')
         # Cropping input using this mask
         parallel_command(crop_by_mask(orig_input_image, input_image, mask_input))
-        print 'Completed cropping the input. Elapsed: %s' % timedelta(seconds=time.time()-t)
+        print("Completed cropping the input. Elapsed: %s" % timedelta(seconds=time.time()-t))
 
 
     # FSL automatically converts .nii to .nii.gz
     sanitized_image = os.path.join(temp_path, os.path.basename(input_image) + ('.gz' if input_image.endswith('.nii') else ''))
-    print '--- Reorienting image. --- Elapsed: %s' % timedelta(seconds=time.time()-t)
+    print("--- Reorienting image. --- Elapsed: %s" % timedelta(seconds=time.time()-t))
     if not os.path.exists(sanitized_image):
         input_image = sanitize_input(input_image, sanitized_image, parallel_command)
         if args.right:
-            print '--- Flipping along L-R. --- Elapsed: %s' % timedelta(seconds=time.time()-t)
+            print("--- Flipping along L-R. --- Elapsed: %s" % timedelta(seconds=time.time()-t))
             flip_lr(input_image, input_image, parallel_command)
-        print '--- Correcting bias. --- Elapsed: %s' % timedelta(seconds=time.time()-t)
+        print("--- Correcting bias. --- Elapsed: %s" % timedelta(seconds=time.time()-t))
         bias_correct(input_image, input_image, **exec_options)
     else:
-        print 'Skipped, using %s' % sanitized_image
+        print("Skipped, using %s" % sanitized_image)
         input_image = sanitized_image
 
 
-    print '--- Registering to mean brain template. --- Elapsed: %s' % timedelta(seconds=time.time()-t)
+    print("--- Registering to mean brain template. --- Elapsed: %s" % timedelta(seconds=time.time()-t))
     if args.forcereg or not check_warps(warp_path):
         if args.warp:
-            print 'Saving output as %s' % warp_path
+            print("Saving output as %s" % warp_path)
         else:
             warp_path = os.path.join(temp_path, tail)
-            print 'Saving output to temporary path.'
+            print("Saving output to temporary path.")
         # ants_nonlinear_registration(template, input_image, warp_path, **exec_options)
-        print 'temppath %s warppath %s input_image %s' % (temp_path, warp_path, input_image)
+        print("temppath %s warppath %s input_image %s" % (temp_path, warp_path, input_image))
 
         if args.algorithm == "v2":
             ants_new_nonlinear_registration(template, input_image, warp_path, **exec_options)
@@ -287,14 +289,14 @@ def main(args, temp_path, pool):
             ants_v0_nonlinear_registration(template, input_image, warp_path, **exec_options)
 
     else:
-        print 'Skipped, using %sInverseWarp.nii.gz and %sAffine.txt' % (warp_path, warp_path)
+        print("Skipped, using %sInverseWarp.nii.gz and %sAffine.txt" % (warp_path, warp_path))
 
     # generating the warped output
     registered = os.path.join(temp_path, 'registered.nii.gz')
     cmd = 'WarpImageMultiTransform 3 %s %s -R %s %s1Warp.nii.gz %s0GenericAffine.mat' % (input_image, registered, template, warp_path, warp_path)
     parallel_command(cmd)
 
-    print '--- Warping prior labels and images. --- Elapsed: %s' % timedelta(seconds=time.time() - t)
+    print("--- Warping prior labels and images. --- Elapsed: %s" % timedelta(seconds=time.time() - t))
     # TODO should probably use output from warp_atlas_subject instead of hard coding paths in create_atlas
     # TODO make this more parallel
     warped_labels = pool.map(partial(
@@ -308,20 +310,21 @@ def main(args, temp_path, pool):
         exec_options=exec_options,
     ), subjects)
     warped_labels = {label: {subj: d[label] for subj, d in zip(subjects, warped_labels)} for label in warped_labels[0]}
-    # # print '--- Forming subject-registered atlases. --- Elapsed: %s' % timedelta(seconds=time.time()-t)
+    # # print("--- Forming subject-registered atlases. --- Elapsed: %s" % timedelta(seconds=time.time()-t))
     # atlases = pool.map(partial(create_atlas, path=temp_path, subjects=subjects, target='', echo=exec_options['echo']),
     # [{'label': label, 'output_atlas': os.path.join(temp_path, label+'_atlas.nii.gz')} for label in warped_labels])
     # atlases = dict(zip(warped_labels, zip(*atlases)[0]))
     # atlas_image = atlases['WMnMPRAGE_bias_corr']
     atlas_images = warped_labels['WMnMPRAGE_bias_corr'].values()
 
-    print '--- Performing label fusion. --- Elapsed: %s' % timedelta(seconds=time.time() - t)
+    print("--- Performing label fusion. --- Elapsed: %s" % timedelta(seconds=time.time() - t))
     # FIXME use whole-brain template registration optimized parameters instead, these are from crop pipeline
     optimal_picsl = optimal['PICSL']
     # for k, v in warped_labels.iteritems():
-    #     print k, v
-    # for label in labels:
-    #     print optimal_picsl[label]
+    #     print(k, v)
+    for label in labels:
+        print(optimal_picsl[label])
+
     if args.jointfusion:
         pool.map(partial(label_fusion_picsl, input_image, atlas_images),
                  [dict(
@@ -370,12 +373,12 @@ def main(args, temp_path, pool):
     #     } for label in labels]
     # )
     # for label in labels:
-    #     print {
+    #     print({
     #         'label': label,
     #         'sigma': optimal_steps[label]['steps_sigma'],
     #         'X': optimal_steps[label]['steps_X'],
     #         'mrf': optimal_steps[label]['steps_mrf'],
-    #     }
+    #     })
     #     partial_fusion = partial(label_fusion, input_image=input_image, image_atlas=atlases['WMnMPRAGE_bias_corr'], echo=exec_options['echo'])
     #     label_fusion_args = {
     #         'label_atlas': atlases[label],
@@ -413,23 +416,23 @@ def main(args, temp_path, pool):
         output_nii = nibabel.Nifti1Image(sub_vlp, affine, hdr)
         output_nii.to_filename(os.path.join(os.path.dirname(out_file), fname))
        
-    print '--- Finished --- Elapsed: %s' % timedelta(seconds=time.time() - t)
+    print("--- Finished --- Elapsed: %s" % timedelta(seconds=time.time() - t))
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    # print args
+    # print(args)
     # exec_options.update({'debug': args.debug, 'verbose': args.verbose})
     exec_options = {'echo': False, 'suppress': True}
     if args.verbose:
         exec_options['verbose'] = True
     if args.debug:
-        print 'Debugging mode forces serial execution.'
+        print("Debugging mode forces serial execution.")
         # exec_options['echo'] = True
         args.processes = 1
     parallel_command = partial(parallel.command, **exec_options)
     pool = parallel.BetterPool(args.processes)
-    print 'Running with %d processes.' % pool._processes
+    print("Running with %d processes." % pool._processes)
     # TODO don't hard code this number of processors
     # pool_small = parallel.BetterPool(4)
     # TODO Add path of script to command()
@@ -437,7 +440,7 @@ if __name__ == '__main__':
     if args.tempdir:
         temp_path = args.tempdir
         if not os.path.exists(temp_path):
-            print 'Making %s' % os.path.abspath(temp_path)
+            print("Making %s" % os.path.abspath(temp_path))
             os.makedirs(temp_path)
     else:
         temp_path = tempfile.mkdtemp(dir=os.path.dirname(args.output_path))

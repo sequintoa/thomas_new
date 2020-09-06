@@ -1,15 +1,17 @@
+from __future__ import print_function
 import os
 import sys
 import require
-from parallel import command
+from .parallel import command
 
+# Add support for Python 3
 
 def check_run(fname, func, *args, **kwargs):
     """
     Checks if fname exists first before execuring func.
     """
     if os.path.exists(fname):
-        print 'Skipped, using %s' % fname
+        print("Skipped, using %s" % fname)
         return fname
     else:
         return func(*args, **kwargs)
@@ -34,14 +36,19 @@ def sanitize_input(input_image, output_image, command=os.system):
     Standardizes the input to neurological coordinates and can flip to segment
     right thalamus.
     """
-    if sys.platform == 'linux2' or sys.platform == 'darwin':
+    if sys.platform in ['linux','linux2','darwin']:
         command('fslreorient2std %s %s' % (input_image, output_image))
+    else:
+        print('System not supported !')
+
     return output_image
 
 
 def flip_lr(input_image, output_image, command=os.system):
-    if sys.platform == 'linux2' or sys.platform == 'darwin':
+    if sys.platform in ['linux','linux2','darwin']:
         command('fslswapdim %s -x y z %s' % (input_image, output_image))
+    else: 
+        print('System not supported !')
     # else:
     #     command('fsl5.0-fslswapdim %s -x y z %s' % (input_image, output_image))
     return output_image

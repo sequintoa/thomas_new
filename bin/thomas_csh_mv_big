@@ -1,0 +1,83 @@
+#!/bin/tcsh
+# Script to run thomas using MV
+
+if ( $#argv >= 1 && $#argv <= 2 ) then
+    set x = $1
+    set y = $1:t
+    if ( $x == $y) then
+        echo "File name OK"
+        set fileok = 1
+    else
+        set fileok = 0
+        echo "First argument has to be just the WMn or CSFn MPRAGE file name without the full path"
+        echo "Please call thomas_csh in the directory containing the WMn file"
+    endif
+else
+     echo "Usage: thomas <wmnfile> or thomas <wmnfile> r"
+     set fileok = 0
+endif
+
+if ( $fileok == 1 ) then
+if ( $#argv == 1 ) then
+  echo "Running left thalamus MV"
+  $THOMASDIR/THOMAS.py -a v2 -p 4 -v -M --tempdir temp --mask $THOMASDIR/atlas/mask_templ_93x187x68_p15.nii.gz --template $THOMASDIR/atlas/p15_templ_93x187x68.nii.gz $1 ALL
+#  $THOMASDIR/THOMAS.py -a v2 -p 4 -v -M --tempdir temp $1 ALL
+  mkdir left
+  cp -rf temp/crop_* .
+  mv *.nii.gz left
+  mv *.mat left
+  mv temp/*Warp* temp/*Aff* left
+  mv temp/registered.nii.gz left
+  mv left/$1 .
+  mv left/csfn* .
+  cd left
+  set z = $1:t:r:r
+  $THOMASDIR/bin/fuselabels
+  antsApplyTransforms -d 3 -i $THOMASDIR/atlas/p15_templ_93x187x68.nii.gz -r crop_{$1} -o regn.nii.gz -t \[${z}0GenericAffine.mat, 1\] -t ${z}1InverseWarp.nii.gz
+  cd ..
+  echo "Done; segmentation results in directory left"
+
+else
+  if ( $#argv == 2) then
+    if ($2 == r) then
+      echo "Running left and right thalamus"
+      echo "Running left thalamus MV"
+      $THOMASDIR/THOMAS.py -a v2 -p 4 -v -M --tempdir temp $1 ALL
+      mkdir left
+      cp -rf temp/crop_* .
+      mv *.nii.gz left
+      mv temp/*Warp* temp/*Aff* left
+      mv temp/registered.nii.gz left
+      mv left/$1 .
+      mv left/WMn* .
+      cd left
+      set z = $1:t:r:r
+      $THOMASDIR/bin/fuselabels
+      #antsApplyTransforms -d 3 -i $THOMASDIR/atlas/p15_templ_93x187x68.nii.gz -r crop_{$1} -o regn.nii.gz -t \[${z}0GenericAffine.mat, 1\] -t ${z}1InverseWarp.nii.gz
+      antsApplyTransforms -d 3 -i $THOMASDIR/atlas/p15_templ_93x187x68.nii.gz -r crop_{$1} -o regn.nii.gz -t \[${z}0GenericAffine.mat, 1\] -t ${z}1InverseWarp.nii.gz
+      cd ..
+      echo "Running right thalamus MV"
+      $THOMASDIR/THOMAS.py -a v2 -p 4 -v -R -M --tempdir tempr $1 ALL
+      mkdir right
+      cp -rf tempr/crop_* .
+      mv *.nii.gz right
+      mv tempr/*Warp* tempr/*Aff* right
+      mv tempr/registered.nii.gz right
+      mv right/$1 .
+      mv right/WMn* .
+      cd right
+      set z = $1:t:r:r
+      $THOMASDIR/bin/fuselabels
+      antsApplyTransforms -d 3 -i $THOMASDIR/atlas/p15_templ_93x187x68.nii.gz -r crop_{$1} -o regn.nii.gz -t \[${z}0GenericAffine.mat, 1\] -t ${z}1InverseWarp.nii.gz
+      cd ..
+      echo "Done; segmentation results in directories left and right"
+
+else
+      echo "Usage: thomas <wmnfile> or thomas <wmnfile> r"
+    endif
+  else
+      echo "Usage: thomas <wmnfile> or thomas <wmnfile> r"
+  endif
+endif
+
+endif
