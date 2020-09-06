@@ -13,6 +13,8 @@ if sys.version_info[0] > 2:
 else:
     import dumbdbm
 
+# Add support for Python 3
+ 
 image_name = 'WMnMPRAGE_bias_corr.nii.gz'
 # Find path for priors
 this_path = os.path.dirname(os.path.realpath(__file__))
