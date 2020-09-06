@@ -18,6 +18,8 @@ from THOMAS_constants import image_name, orig_template, template_93, mask_93, th
 import nibabel
 import numpy as np
 
+# Add support for Python 3
+
 
 def warp_atlas_subject(subject, path, labels, input_image, input_transform_prefix, output_path, exec_options={}):
     """
