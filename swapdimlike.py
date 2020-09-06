@@ -7,6 +7,8 @@ import os
 import sys
 import subprocess
 
+# Add support for Python 3
+
 
 def read_ordering(f):
     p = subprocess.Popen('fslhd %s' % f, stdout=subprocess.PIPE, shell=True)
