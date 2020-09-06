@@ -8,11 +8,16 @@ Segmentation of the thalamus into 12 nuclei using white-matter-nulled MPRAGE ima
 - [PICSL-MALF](https://www.nitrc.org/frs/?group_id=634)
  
 
-## Installation
-- git clone https://github.com/thalamicseg/thomas_new.git
-- python require.py
-- Set environment variable to the THOMAS installation path
+## Notes
+- Original repository: https://github.com/thalamicseg/thomas_new.git
+
+WIP Branch (Work-in-Progress)
+- Set environment variable to the THOMAS installation path for path independent TSH wrapper 
 	export THOMASDIR=/array/hdd/maheshbk/tools/thomas_wip
+- Added wrapper BASH script to processs multiple input files 
+- Added Python 3 support for base THOMAS package 
+
+- Bugs: Label fusion does not work with Python 3
 
 
 ## Usage
