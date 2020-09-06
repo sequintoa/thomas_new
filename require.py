@@ -9,6 +9,8 @@ import sys
 import subprocess
 import THOMAS_constants
 
+# Add support for Python 3
+
 
 def is_tool(name):
     """
